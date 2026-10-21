@@ -39,11 +39,11 @@ a { color: #fff; text-decoration: none; }
     border: 2px solid var(--dark-green);
     border-radius: 7px;
     background: var(--green);
-    color: #fff;
+    color: #000;
     font-size: 16px;
     outline: none;
 }
-#searchInput::placeholder { color: #fff; opacity: .85; }
+#searchInput::placeholder { color: #000; opacity: .85; }
 #searchResultsText { color: #aaa; font-size: 13px; margin-top: 7px; }
 
 /* Player */
@@ -103,7 +103,7 @@ a { color: #fff; text-decoration: none; }
     border: 2px solid var(--dark-green);
     border-radius: 6px;
     background: var(--green);
-    color: #fff;
+    color: #000;
     cursor: pointer;
     font-size: 15px;
     font-weight: bold;
@@ -228,7 +228,7 @@ a { color: #fff; text-decoration: none; }
     border: 2px solid var(--dark-green);
     border-radius: 5px;
     background: var(--green);
-    color: #fff;
+    color: #000;
     cursor: pointer;
 }
 .playlist-button:hover { opacity: .85; }
@@ -255,7 +255,7 @@ a { color: #fff; text-decoration: none; }
     flex-direction: column;
     align-items: center;
     background: var(--green);
-    color: #fff;
+    color: #000;
     border: 2px solid var(--dark-green);
     border-radius: 5px;
     margin: 10px;
@@ -295,8 +295,8 @@ a { color: #fff; text-decoration: none; }
     transition: .15s;
 }
 .song-card:hover .queue-add-button { opacity: 1; transform: translateY(0); }
-.queue-add-button.in-queue { background: var(--green); opacity: 1; transform: translateY(0); }
-.queue-add-button:hover { background: var(--green); }
+.queue-add-button.in-queue { background: var(--green); color: #000; opacity: 1; transform: translateY(0); }
+.queue-add-button:hover { background: var(--green); color: #000; }
 
 @media (max-width: 600px) {
     #player, #queuePanel, #searchContainer { width: 96%; }
@@ -304,6 +304,7 @@ a { color: #fff; text-decoration: none; }
     .options { flex-direction: column; }
     .song-card { max-width: 170px; }
     .song-card .img-box { width: 100px; height: 100px; }
+    
 }
 </style>
 </head>
@@ -312,6 +313,7 @@ a { color: #fff; text-decoration: none; }
 <div class="page-header">
     <h1>Music Player Online</h1>
     <h2>Do not blast music in public places such as schools. Use at your own risk.</h2>
+    <h2 style="color:red">If you do not like music with Explict language, research it, some songs contain these types of langauges.</h2>
     <a href="/"><h3 style="color:#1ED760">Click here for homepage</h3></a>
 </div>
 
@@ -568,7 +570,7 @@ const SONG_CATALOG = [
         name: "Fishy On Me",
         artist: "Tiko",
         audio: "Music/AllMusic/Fishyonme.mp3",
-        image: "Music/Images/FishyOnme.png",
+        image: "Music/Images/Fishyonme.png",
         category: "Fortnite Hit"
     }
 ];
