@@ -1,1040 +1,355 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Music Player Online</title>
+<link rel="icon" type="image/png" href="favicon.png">
+
+<style>
+:root {
+    --green: #1ED760;
+    --dark-green: #0f8f3f;
+    --danger: #e53935;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    background: #000;
+    color: #fff;
+    font-family: Arial, sans-serif;
+    margin: 0;
+}
+
+a { color: #fff; text-decoration: none; }
+
+/* Header */
+.page-header { text-align: center; padding: 10px 15px; }
+.page-header h1 { margin-bottom: 8px; }
+.page-header h2, .page-header h3 { max-width: 1000px; margin: 10px auto; }
+.page-header h2 { font-size: 18px; }
+
+/* Search */
+#searchContainer { width: min(900px, 94%); margin: 25px auto 15px; }
+#searchInput {
+    width: 100%;
+    height: 46px;
+    padding: 0 16px;
+    border: 2px solid var(--dark-green);
+    border-radius: 7px;
+    background: var(--green);
+    color: #fff;
+    font-size: 16px;
+    outline: none;
+}
+#searchInput::placeholder { color: #fff; opacity: .85; }
+#searchResultsText { color: #aaa; font-size: 13px; margin-top: 7px; }
+
+/* Player */
+#player {
+    width: min(1000px, 94%);
+    margin: 20px auto;
+    padding: 20px;
+    background: #101010;
+    border: 2px solid var(--green);
+    border-radius: 10px;
+}
+
+#nowPlaying { text-align: center; margin-bottom: 15px; }
+#nowPlayingTitle { font-size: 20px; font-weight: bold; min-height: 24px; }
+#nowPlayingState { margin-top: 5px; font-size: 13px; color: var(--green); }
+
+/* Progress */
+#progressContainer { display: flex; align-items: center; gap: 10px; margin: 15px 0; }
+#currentTime, #totalTime { width: 55px; color: #ccc; font-size: 12px; text-align: center; }
+#progressBar {
+    flex: 1;
+    appearance: none;
+    height: 7px;
+    border-radius: 10px;
+    background: #333;
+    cursor: pointer;
+}
+#progressBar::-webkit-slider-thumb {
+    appearance: none;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: var(--green);
+    cursor: pointer;
+}
+#progressBar::-moz-range-thumb {
+    width: 15px;
+    height: 15px;
+    border: none;
+    border-radius: 50%;
+    background: var(--green);
+    cursor: pointer;
+}
+
+/* Controls */
+.buttons {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 15px 0;
+}
+.player-button {
+    min-width: 44px;
+    min-height: 42px;
+    padding: 8px 13px;
+    border: 2px solid var(--dark-green);
+    border-radius: 6px;
+    background: var(--green);
+    color: #fff;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: bold;
+}
+.player-button:hover { filter: brightness(.9); }
+.player-button:active { transform: scale(.97); }
+.player-button.primary { min-width: 55px; min-height: 50px; font-size: 19px; }
+
+/* Options */
+.options {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 15px;
+}
+.option {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+}
+.option select, .option input[type="number"] {
+    padding: 7px;
+    border: 1px solid var(--dark-green);
+    border-radius: 5px;
+    background: #111;
+    color: #fff;
+}
+#volumeSlider { width: 120px; accent-color: var(--green); }
+
+/* Queue */
+#queuePanel {
+    width: min(1000px, 94%);
+    margin: 20px auto;
+    padding: 20px;
+    background: #000;
+    border: 2px solid var(--green);
+    border-radius: 10px;
+}
+#queueHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+#queueHeader h3 { margin: 0; }
+#queueCount { color: var(--green); font-size: 13px; }
+
+#queueSearch {
+    width: 100%;
+    margin-top: 15px;
+    padding: 11px;
+    border: 1px solid var(--dark-green);
+    border-radius: 5px;
+    background: #111;
+    color: #fff;
+    outline: none;
+}
+
+#queueList {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 420px;
+    overflow-y: auto;
+    margin: 15px 0;
+    padding: 8px;
+    border: 1px solid #222;
+    border-radius: 6px;
+    background: #080808;
+}
 
-    <link rel="stylesheet" href="style.css">
-
-    <title>Music Player Online</title>
-
-    <link rel="icon" type="image/png" href="favicon.png">
-
-    <style>
-
-        /* =========================================================
-           ADVANCED MUSIC PLAYER
-           ========================================================= */
-
-        :root {
-            --green: #1ED760;
-            --dark-green: #0f8f3f;
-            --black: #000;
-            --panel: #101010;
-            --panel-light: #181818;
-            --gray: #a7a7a7;
-            --white: #fff;
-            --danger: #e53935;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            background: #000;
-            color: white;
-            font-family: Arial, sans-serif;
-            overflow-x: hidden;
-        }
-
-        a:link,
-        a:visited,
-        a:hover,
-        a:active {
-            color: white;
-            background-color: transparent;
-            text-decoration: none;
-        }
-
-
-        /* =========================================================
-           PAGE HEADER
-           ========================================================= */
-
-        .CenterColor {
-            color: white;
-            text-align: center;
-        }
-
-        .page-header {
-            text-align: center;
-            padding: 10px 15px;
-        }
-
-        .page-header h1 {
-            margin-bottom: 8px;
-        }
-
-        .page-header h2 {
-            font-size: 18px;
-            max-width: 1000px;
-            margin: 10px auto;
-        }
-
-        .page-header h3 {
-            max-width: 1000px;
-            margin: 10px auto;
-        }
-
-
-        /* =========================================================
-           SEARCH
-           ========================================================= */
-
-        #searchContainer {
-            width: min(900px, 94%);
-            margin: 25px auto 15px;
-        }
-
-        #searchInput {
-            width: 100%;
-            height: 46px;
-
-            padding: 0 16px;
-
-            border: 2px solid var(--dark-green);
-            border-radius: 7px;
-
-            background: var(--green);
-            color: white;
-
-            font-size: 16px;
-            outline: none;
-        }
-
-        #searchInput::placeholder {
-            color: white;
-            opacity: .85;
-        }
-
-        #searchInput:focus {
-            box-shadow: 0 0 0 2px rgba(30, 215, 96, .25);
-        }
-
-        #searchResultsText {
-            color: #aaa;
-            font-size: 13px;
-            margin-top: 7px;
-        }
-
-
-        /* =========================================================
-           MAIN PLAYER
-           ========================================================= */
-
-        #advancedPlayer {
-            width: min(1000px, 94%);
-            margin: 20px auto;
-
-            padding: 20px;
-
-            background: var(--panel);
-
-            border: 2px solid var(--green);
-            border-radius: 10px;
-
-            box-shadow: 0 0 20px rgba(30, 215, 96, .08);
-        }
-
-        #nowPlaying {
-            text-align: center;
-            margin-bottom: 15px;
-        }
-
-        #nowPlayingTitle {
-            font-size: 20px;
-            font-weight: bold;
-            color: white;
-
-            min-height: 24px;
-        }
-
-        #nowPlayingState {
-            margin-top: 5px;
-
-            font-size: 13px;
-            color: var(--green);
-        }
-
-
-        /* =========================================================
-           PROGRESS BAR
-           ========================================================= */
-
-        #progressContainer {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-
-            margin: 15px 0;
-        }
-
-        #currentTime,
-        #totalTime {
-            width: 55px;
-
-            color: #ccc;
-
-            font-size: 12px;
-
-            text-align: center;
-        }
-
-        #progressBar {
-            flex: 1;
-
-            appearance: none;
-
-            height: 7px;
-
-            border-radius: 10px;
-
-            background: #333;
-
-            cursor: pointer;
-        }
-
-        #progressBar::-webkit-slider-thumb {
-            appearance: none;
-
-            width: 15px;
-            height: 15px;
-
-            border-radius: 50%;
-
-            background: var(--green);
-
-            cursor: pointer;
-        }
-
-        #progressBar::-moz-range-thumb {
-            width: 15px;
-            height: 15px;
-
-            border: none;
-            border-radius: 50%;
-
-            background: var(--green);
-
-            cursor: pointer;
-        }
-
-
-        /* =========================================================
-           PLAYER BUTTONS
-           ========================================================= */
-
-        .player-buttons {
-            display: flex;
-
-            justify-content: center;
-            align-items: center;
-
-            flex-wrap: wrap;
-
-            gap: 8px;
-
-            margin: 15px 0;
-        }
-
-        .player-button {
-            min-width: 44px;
-            min-height: 42px;
-
-            padding: 8px 13px;
-
-            border: 2px solid var(--dark-green);
-            border-radius: 6px;
-
-            background: var(--green);
-            color: white;
-
-            cursor: pointer;
-
-            font-size: 15px;
-            font-weight: bold;
-        }
-
-        .player-button:hover {
-            filter: brightness(.9);
-        }
-
-        .player-button:active {
-            transform: scale(.97);
-        }
-
-        .player-button.primary {
-            min-width: 55px;
-            min-height: 50px;
-
-            font-size: 19px;
-        }
-
-        .player-button.danger {
-            background: var(--danger);
-            border-color: #a51e1b;
-        }
-
-
-        /* =========================================================
-           PLAYER OPTIONS
-           ========================================================= */
-
-        #playerOptions {
-            display: flex;
-
-            justify-content: center;
-            align-items: center;
-
-            flex-wrap: wrap;
-
-            gap: 12px;
-
-            margin-top: 15px;
-        }
-
-        .player-option {
-            display: flex;
-
-            align-items: center;
-
-            gap: 6px;
-
-            color: white;
-
-            font-size: 13px;
-        }
-
-        .player-option select,
-        .player-option input[type="number"] {
-            padding: 7px;
-
-            border: 1px solid var(--dark-green);
-            border-radius: 5px;
-
-            background: #111;
-            color: white;
-        }
-
-        .volume-wrapper {
-            display: flex;
-
-            align-items: center;
-
-            gap: 7px;
-        }
-
-        #volumeSlider {
-            width: 120px;
-
-            accent-color: var(--green);
-        }
-
-
-        /* =========================================================
-           PLAYLIST PANEL
-           ========================================================= */
-
-        #playlistControls {
-            width: min(1000px, 94%);
-            margin: 20px auto;
-
-            padding: 20px;
-
-            background: var(--black);
-
-            border: 2px solid var(--green);
-            border-radius: 10px;
-
-            color: white;
-        }
-
-        #playlistHeader {
-            display: flex;
-
-            align-items: center;
-            justify-content: space-between;
-
-            flex-wrap: wrap;
-
-            gap: 10px;
-        }
-
-        #playlistHeader h3 {
-            margin: 0;
-        }
-
-        #queueCount {
-            color: var(--green);
-            font-size: 13px;
-        }
-
-
-        /* =========================================================
-           QUEUE SEARCH
-           ========================================================= */
-
-        #queueSearch {
-            width: 100%;
-
-            margin-top: 15px;
-
-            padding: 11px;
-
-            border: 1px solid var(--dark-green);
-            border-radius: 5px;
-
-            background: #111;
-            color: white;
-
-            outline: none;
-        }
-
-
-        /* =========================================================
-           QUEUE LIST
-           ========================================================= */
-
-        #songCheckboxes {
-            display: flex;
-
-            flex-direction: column;
-
-            gap: 6px;
-
-            max-height: 420px;
-
-            overflow-y: auto;
-
-            margin: 15px 0;
-
-            padding: 8px;
-
-            border: 1px solid #222;
-            border-radius: 6px;
-
-            background: #080808;
-        }
-
-        .queue-item {
-            display: flex;
-
-            align-items: center;
-
-            gap: 8px;
-
-            padding: 9px;
-
-            border-radius: 5px;
-
-            background: #111;
-
-            transition: .15s;
-        }
-
-        .queue-item:hover {
-            background: #191919;
-        }
-
-        .queue-item.current {
-            border-left: 4px solid var(--green);
-
-            background: #132719;
-        }
-
-        .queue-info {
-            flex: 1;
-
-            min-width: 0;
-        }
-
-        .queue-empty {
-            padding: 25px 15px;
-
-            text-align: center;
-            color: #888;
-            font-size: 13px;
-        }
-
-        .queue-title {
-            overflow: hidden;
-
-            white-space: nowrap;
-            text-overflow: ellipsis;
-
-            font-size: 14px;
-        }
-
-        .queue-number {
-            color: #777;
-
-            margin-right: 5px;
-        }
-
-        .queue-actions {
-            display: flex;
-
-            gap: 3px;
-        }
-
-        .queue-action {
-            padding: 5px 7px;
-
-            border: 1px solid #333;
-            border-radius: 4px;
-
-            background: #191919;
-            color: white;
-
-            cursor: pointer;
-        }
-
-        .queue-action:hover {
-            background: var(--dark-green);
-        }
-
-
-        /* =========================================================
-           PLAYLIST ACTION BAR
-           ========================================================= */
-
-        #playlistActions {
-            display: flex;
-
-            flex-wrap: wrap;
-
-            justify-content: center;
-
-            gap: 7px;
-        }
-
-        .playlist-button {
-            padding: 9px 13px;
-
-            border: 2px solid var(--dark-green);
-            border-radius: 5px;
-
-            background: var(--green);
-            color: white;
-
-            cursor: pointer;
-        }
-
-        .playlist-button:hover {
-            opacity: .85;
-        }
-
-
-        /* =========================================================
-           STATUS
-           ========================================================= */
-
-        #playlistStatus {
-            margin-top: 12px;
-
-            text-align: center;
-
-            color: var(--green);
-
-            font-weight: bold;
-        }
-
-
-        /* =========================================================
-           SLEEP TIMER
-           ========================================================= */
-
-        #sleepTimerStatus {
-            text-align: center;
-
-            color: #aaa;
-
-            font-size: 12px;
-
-            margin-top: 7px;
-        }
-
-
-        /* =========================================================
-           SPOTIFY-STYLE QUEUE ADD BUTTON
-           ========================================================= */
-
-        .button {
-            position: relative;
-        }
-
-        .queue-add-button {
-            position: absolute;
-            right: 8px;
-            bottom: 8px;
-
-            padding: 6px 9px;
-
-            border: 1px solid #0f8f3f;
-            border-radius: 5px;
-
-            background: #111;
-            color: white;
-
-            font-size: 12px;
-            font-weight: bold;
-
-            cursor: pointer;
-            opacity: 0;
-            transform: translateY(4px);
-            transition: .15s;
-            z-index: 5;
-        }
-
-        .button:hover .queue-add-button,
-        .queue-add-button:focus {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .queue-add-button:hover {
-            background: var(--green);
-        }
-
-        .queue-add-button.in-queue {
-            background: var(--green);
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .queue-add-button:disabled {
-            cursor: default;
-        }
-
-
-        /* =========================================================
-           SONG BUTTONS
-           ========================================================= */
-
-        .button-container {
-            display: flex;
-
-            flex-wrap: wrap;
-
-            justify-content: center;
-
-            align-items: flex-start;
-        }
-
-        .button {
-            display: flex;
-
-            flex-direction: column;
-
-            align-items: center;
-
-            justify-content: flex-start;
-
-            background: var(--green);
-            color: white;
-
-            border: 2px solid var(--dark-green);
-
-            border-radius: 5px;
-
-            margin: 10px;
-
-            padding: 15px 20px;
-
-            max-width: 200px;
-            width: 100%;
-
-            box-sizing: border-box;
-
-            text-align: center;
-
-            cursor: pointer;
-        }
-
-        .button:hover {
-            opacity: .85;
-        }
-
-        .button .img-box {
-            width: 120px;
-            height: 120px;
-
-            display: flex;
-
-            justify-content: center;
-            align-items: center;
-
-            overflow: hidden;
-
-            margin-bottom: 8px;
-        }
-
-        .button .img-box img {
-            width: 100%;
-            height: 100%;
-
-            object-fit: contain;
-        }
-
-        .button.hidden-by-search {
-            display: none !important;
-        }
-
-
-        /* =========================================================
-           HIDDEN IFRAME
-           ========================================================= */
-
-        #playlistFrame {
-            position: fixed;
-
-            left: -10000px;
-            top: -10000px;
-
-            width: 1px;
-            height: 1px;
-
-            border: none;
-
-            opacity: 0;
-
-            pointer-events: none;
-        }
-
-
-        /* =========================================================
-           MOBILE
-           ========================================================= */
-
-        @media (max-width: 600px) {
-
-            #advancedPlayer,
-            #playlistControls,
-            #searchContainer {
-                width: 96%;
-            }
-
-            .page-header h2 {
-                font-size: 15px;
-            }
-
-            #playerOptions {
-                flex-direction: column;
-            }
-
-            .queue-actions {
-                flex-wrap: wrap;
-            }
-
-            .button {
-                max-width: 170px;
-            }
-
-            .button .img-box {
-                width: 100px;
-                height: 100px;
-            }
-        }
-
-    
-/* Spotify-style queue arranging */
 .queue-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px;
+    border-radius: 5px;
+    background: #111;
+    transition: .15s;
     cursor: grab;
     user-select: none;
 }
-.queue-item:active {
-    cursor: grabbing;
+.queue-item:hover { background: #191919; }
+.queue-item.current { border-left: 4px solid var(--green); background: #132719; }
+.queue-item.dragging { opacity: .45; }
+.queue-item.drag-over { border: 1px dashed var(--green); background: #19351f; }
+
+.queue-handle { color: #777; font-size: 18px; padding: 0 4px; }
+.queue-title {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 14px;
 }
-.queue-item.dragging {
-    opacity: 0.45;
+.queue-number { color: #777; margin-right: 5px; }
+
+.queue-actions { display: flex; gap: 3px; }
+.queue-action {
+    padding: 5px 7px;
+    border: 1px solid #333;
+    border-radius: 4px;
+    background: #191919;
+    color: #fff;
+    cursor: pointer;
 }
-.queue-item.drag-over {
-    border: 1px dashed var(--green);
-    background: #19351f;
-}
-.queue-drag-handle {
-    color: #777;
-    font-size: 18px;
-    cursor: grab;
-    padding: 0 4px;
-    flex-shrink: 0;
-}
-.queue-loop-control {
+.queue-action:hover { background: var(--dark-green); }
+
+.queue-buttons {
     display: flex;
-    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 7px;
-    margin-top: 10px;
-    color: white;
-    font-size: 13px;
 }
-.queue-loop-control input {
-    accent-color: var(--green);
+.playlist-button {
+    padding: 9px 13px;
+    border: 2px solid var(--dark-green);
+    border-radius: 5px;
+    background: var(--green);
+    color: #fff;
+    cursor: pointer;
+}
+.playlist-button:hover { opacity: .85; }
+
+#status {
+    margin-top: 12px;
+    text-align: center;
+    color: var(--green);
+    font-weight: bold;
+}
+#sleepStatus { text-align: center; color: #aaa; font-size: 12px; margin-top: 7px; }
+
+/* Library */
+#songLibrary {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
 }
 
+.song-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--green);
+    color: #fff;
+    border: 2px solid var(--dark-green);
+    border-radius: 5px;
+    margin: 10px;
+    padding: 15px 20px;
+    max-width: 200px;
+    width: 100%;
+    text-align: center;
+    cursor: pointer;
+}
+.song-card:hover { opacity: .85; }
+.song-card .img-box {
+    width: 120px;
+    height: 120px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+.song-card .img-box img { width: 100%; height: 100%; object-fit: contain; }
+.song-card.hidden { display: none; }
+
+.queue-add-button {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    padding: 6px 9px;
+    border: 1px solid var(--dark-green);
+    border-radius: 5px;
+    background: #111;
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: .15s;
+}
+.song-card:hover .queue-add-button { opacity: 1; transform: translateY(0); }
+.queue-add-button.in-queue { background: var(--green); opacity: 1; transform: translateY(0); }
+.queue-add-button:hover { background: var(--green); }
+
+@media (max-width: 600px) {
+    #player, #queuePanel, #searchContainer { width: 96%; }
+    .page-header h2 { font-size: 15px; }
+    .options { flex-direction: column; }
+    .song-card { max-width: 170px; }
+    .song-card .img-box { width: 100px; height: 100px; }
+}
 </style>
 </head>
-
-
 <body>
 
-
-<!-- =========================================================
-     WARNING
-     ========================================================= -->
-
-<script>
-alert(
-    "Do not use this to blast music in public places such as schools, etc. " +
-    "I am not responsible for any trouble if you blast music and get in trouble. " +
-    "Use this at your own risk. I am not responsible for hearing damage or any other damage " +
-    "that may occur from using this website."
-);
-</script>
-
-
-<!-- =========================================================
-     DIRECT URL ACCESS BLOCK
-     ========================================================= -->
-
-<script>
-(function () {
-
-    const currentPath = window.location.pathname;
-
-    if (currentPath.startsWith("/Music/Music/")) {
-        window.location.href = "/Music/index.html";
-    }
-
-})();
-</script>
-
-
-<!-- =========================================================
-     HEADER
-     ========================================================= -->
-
 <div class="page-header">
-
-    <h1 class="CenterColor">
-        Music Player Online
-    </h1>
-
-    <h2 class="CenterColor">
-        Used some code from GitHub to assist with development,
-        along with AI. Also, if you're going to let your children
-        listen to music, IT IS NOT FOR children/kids!!!!!
-    </h2>
-
-    <h3 class="CenterColor">
-        Also, all of the warnings in the music apply to download rules too!!!!
-    </h3>
-
-    <h3 class="CenterColor">
-        Do not blast music in any place, including public places such as schools.
-        This applies to all music!
-    </h3>
-
-    <a href="/">
-        <h3 class="CenterColor">
-            Click here for homepage
-        </h3>
-    </a>
-
+    <h1>Music Player Online</h1>
+    <h2>Do not blast music in public places such as schools. Use at your own risk.</h2>
+    <a href="/"><h3>Click here for homepage</h3></a>
 </div>
 
-
-<!-- =========================================================
-     PASSWORD
-     ========================================================= -->
-
-<div class="CenterColor" style="margin-top:20px;">
-
-    <input
-        id="unlockInput"
-        type="password"
-        placeholder="Enter the override quiz code here"
-        style="padding:10px; width:250px; font-size:16px;"
-    >
-
-    <button
-        type="button"
-        onclick="unlockPassword()"
-        style="padding:10px; font-size:16px;"
-    >
-        Unlock
-    </button>
-
-</div>
-
-
-<h3 class="CenterColor">
-
-    By typing the code,
-
-    <a href="Music/SecretCode/index.html">
-        you're agreeing to the rules
-    </a>.
-
-</h3>
-
-
-<p
-    class="CenterColor"
-    style="font-size:12px; cursor:pointer; text-decoration:underline;"
-    onclick="teacherOverridePrompt()"
->
-    Quiz Override Code
-</p>
-
-
-<!-- =========================================================
-     MAIN SEARCH
-     ========================================================= -->
-
+<!-- Search -->
 <div id="searchContainer">
-
-    <input
-        type="text"
-        id="searchInput"
-        placeholder="🔎 Search songs, artists, genres..."
-        autocomplete="off"
-    >
-
-    <div id="searchResultsText">
-        Showing all songs
-    </div>
-
+    <input type="text" id="searchInput" placeholder="🔎 Search songs, artists, genres..." autocomplete="off">
+    <div id="searchResultsText">Showing all songs</div>
 </div>
 
-
-<!-- =========================================================
-     ADVANCED PLAYER
-     ========================================================= -->
-
-<div id="advancedPlayer">
-
+<!-- Player -->
+<div id="player">
     <div id="nowPlaying">
-
-        <div id="nowPlayingTitle">
-            Nothing playing
-        </div>
-
-        <div id="nowPlayingState">
-            Ready
-        </div>
-
+        <div id="nowPlayingTitle">Nothing playing</div>
+        <div id="nowPlayingState">Ready</div>
     </div>
-
-
-    <!-- PROGRESS -->
 
     <div id="progressContainer">
-
-        <span id="currentTime">
-            0:00
-        </span>
-
-        <input
-            id="progressBar"
-            type="range"
-            min="0"
-            max="100"
-            value="0"
-            step="0.1"
-        >
-
-        <span id="totalTime">
-            0:00
-        </span>
-
+        <span id="currentTime">0:00</span>
+        <input id="progressBar" type="range" min="0" max="100" value="0" step="0.1">
+        <span id="totalTime">0:00</span>
     </div>
 
-
-    <!-- MAIN CONTROLS -->
-
-    <div class="player-buttons">
-
-        <button
-            class="player-button"
-            onclick="previousSong()"
-            title="Previous song"
-        >
-            ⏮
-        </button>
-
-        <button
-            class="player-button"
-            onclick="skipBackward()"
-            title="Back 10 seconds"
-        >
-            ↶ 10
-        </button>
-
-        <button
-            id="playPauseButton"
-            class="player-button primary"
-            onclick="togglePlayPause()"
-            title="Play / Pause"
-        >
-            ▶
-        </button>
-
-        <button
-            class="player-button"
-            onclick="skipForward()"
-            title="Forward 10 seconds"
-        >
-            10 ↷
-        </button>
-
-        <button
-            class="player-button"
-            onclick="nextSong()"
-            title="Next song"
-        >
-            ⏭
-        </button>
-
+    <div class="buttons">
+        <button class="player-button" onclick="previousSong()" title="Previous">⏮</button>
+        <button class="player-button" onclick="skip(-10)" title="Back 10s">↶ 10</button>
+        <button id="playPauseButton" class="player-button primary" onclick="togglePlay()" title="Play/Pause">▶</button>
+        <button class="player-button" onclick="skip(10)" title="Forward 10s">10 ↷</button>
+        <button class="player-button" onclick="nextSong()" title="Next">⏭</button>
     </div>
 
-
-    <!-- PLAYER OPTIONS -->
-
-    <div id="playerOptions">
-
-        <div class="player-option">
-
-            <span>
-                🔊
-            </span>
-
-            <input
-                id="volumeSlider"
-                type="range"
-                min="0"
-                max="1"
-                step="0.01"
-                value="1"
-            >
-
-            <button
-                class="playlist-button"
-                type="button"
-                onclick="toggleMute()"
-            >
-                Mute
-            </button>
-
+    <div class="options">
+        <div class="option">
+            🔊 <input id="volumeSlider" type="range" min="0" max="1" step="0.01" value="1">
+            <button class="playlist-button" onclick="toggleMute()">Mute</button>
         </div>
-
-
-        <label class="player-option">
-
+        <label class="option">
             Speed:
-
             <select id="speedSelect">
-
                 <option value="0.5">0.5×</option>
                 <option value="0.75">0.75×</option>
                 <option value="1" selected>1×</option>
@@ -1042,2524 +357,718 @@ alert(
                 <option value="1.5">1.5×</option>
                 <option value="1.75">1.75×</option>
                 <option value="2">2×</option>
-
             </select>
-
         </label>
-
-
-        <label class="player-option">
-
-            Start at:
-
-            <input
-                id="startTimeInput"
-                type="number"
-                min="0"
-                step="1"
-                value="0"
-                style="width:70px;"
-            >
-
-            sec
-
-            <button
-                class="playlist-button"
-                onclick="applyStartTime()"
-            >
-                Apply
-            </button>
-
+        <label class="option">
+            Start at: <input id="startTimeInput" type="number" min="0" step="1" value="0" style="width:70px;"> sec
+            <button class="playlist-button" onclick="applyStartTime()">Apply</button>
         </label>
-
     </div>
 
-
-    <!-- SLEEP TIMER -->
-
-    <div
-        id="playerOptions"
-        style="margin-top:12px;"
-    >
-
-        <label class="player-option">
-
+    <div class="options">
+        <label class="option">
             💤 Sleep timer:
-
             <select id="sleepTimerSelect">
-
-                <option value="0">
-                    Off
-                </option>
-
-                <option value="5">
-                    5 minutes
-                </option>
-
-                <option value="10">
-                    10 minutes
-                </option>
-
-                <option value="15">
-                    15 minutes
-                </option>
-
-                <option value="30">
-                    30 minutes
-                </option>
-
-                <option value="60">
-                    1 hour
-                </option>
-
-                <option value="120">
-                    2 hours
-                </option>
-
+                <option value="0">Off</option>
+                <option value="5">5 minutes</option>
+                <option value="10">10 minutes</option>
+                <option value="15">15 minutes</option>
+                <option value="30">30 minutes</option>
+                <option value="60">1 hour</option>
+                <option value="120">2 hours</option>
             </select>
-
         </label>
-
-        <span id="sleepTimerStatus">
-            Sleep timer off
-        </span>
-
+        <span id="sleepStatus">Sleep timer off</span>
     </div>
 
-
-    <!-- PLAY MODE -->
-
-    <div
-        id="playerOptions"
-        style="margin-top:12px;"
-    >
-
-        <label class="player-option">
-
-            <input
-                id="shuffleToggle"
-                type="checkbox"
-            >
-
-            🔀 Shuffle
-
-        </label>
-
-
-        <label class="player-option">
-
-            <input
-                id="repeatSongToggle"
-                type="checkbox"
-            >
-
-            🔂 Repeat song
-
-        </label>
-
-
-        <label class="player-option">
-
-            <input
-                id="loopToggle"
-                type="checkbox"
-            >
-
-            🔁 Loop playlist
-
-        </label>
-
+    <div class="options">
+        <label class="option"><input id="shuffleToggle" type="checkbox"> 🔀 Shuffle</label>
+        <label class="option"><input id="repeatToggle" type="checkbox"> 🔂 Repeat song</label>
+        <label class="option"><input id="loopToggle" type="checkbox"> 🔁 Loop playlist</label>
     </div>
-
 </div>
 
-
-<!-- =========================================================
-     PLAYLIST / QUEUE
-     ========================================================= -->
-
-<div id="playlistControls">
-
-    <div id="playlistHeader">
-
-        <h3>
-            Playlist Queue
-        </h3>
-
-        <span id="queueCount">
-            0 songs
-        </span>
-
+<!-- Queue -->
+<div id="queuePanel">
+    <div id="queueHeader">
+        <h3>Playlist Queue</h3>
+        <span id="queueCount">0 songs</span>
     </div>
 
+    <input id="queueSearch" type="text" placeholder="🔎 Search queue..." autocomplete="off">
 
-    <input
-        id="queueSearch"
-        type="text"
-        placeholder="🔎 Search songs to add to your queue..."
-        autocomplete="off"
-    >
-
-
-    <div
-        style="
-            display:flex;
-            flex-wrap:wrap;
-            justify-content:center;
-            gap:6px;
-            margin-top:10px;
-        "
-    >
-
-        <button
-            class="playlist-button"
-            onclick="shuffleQueue()"
-        >
-            🔀 Shuffle
-        </button>
-
-        <button
-            class="playlist-button"
-            onclick="clearQueue()"
-        >
-            Clear Queue
-        </button>
-
+    <div class="queue-buttons" style="margin-top:10px;">
+        <button class="playlist-button" onclick="shuffleQueue()">🔀 Shuffle</button>
+        <button class="playlist-button" onclick="clearQueue()">Clear Queue</button>
     </div>
 
+    <div id="queueList"></div>
 
-    <div id="songCheckboxes"></div>
+    <div class="queue-buttons">
+        <button class="playlist-button" onclick="playFirst()">▶ Play Queue</button>
+        <button class="playlist-button" onclick="stopPlayback()">⏹ Stop</button>
+    </div>
 
-<div class="queue-loop-control">
-    <input
-        type="checkbox"
-        id="playlistLoop"
-        onchange="togglePlaylistLoop(this.checked)"
-    >
-    <label for="playlistLoop">🔁 Loop playlist</label>
+    <div id="status">Playlist stopped.</div>
 </div>
 
+<!-- Library -->
+<div id="songLibrary"></div>
 
-
-    <div id="playlistActions">
-
-        <button
-            class="playlist-button"
-            onclick="playSelectedSongs()"
-        >
-            ▶ Play Selected
-        </button>
-
-        <button
-            class="playlist-button"
-            onclick="playFirstSong()"
-        >
-            ▶ Play Queue
-        </button>
-
-        <button
-            class="playlist-button"
-            onclick="stopPlaylist()"
-        >
-            ⏹ Stop
-        </button>
-
-    </div>
-
-
-    <div id="playlistStatus">
-        Playlist stopped.
-    </div>
-
-</div>
-
-
-<!-- =========================================================
-     SONG LIBRARY
-     ========================================================= -->
-
-<div
-    id="songLibrary"
-    class="button-container"
->
-
-
-    <a
-        class="button"
-        href="Music/67PhonkSpyrix.html"
-        onclick="return explicitWarning()"
-    >
-        <div class="img-box">
-            <img
-                src="Music/Images/67PhonkSpyrix.png"
-                alt="67 Phonk - Spyrix"
-            >
-        </div>
-        Phonk | 67 Phonk - Spyrix
-    </a>
-
-
-    <a
-        class="button"
-        href="Music/FireSongSlavaMarshmallow.html"
-        onclick="return explicitWarning()"
-    >
-        <div class="img-box">
-            <img
-                src="Music/Images/SlavaFireSong.png"
-                alt="SLAVA MARLOW - Ты Горишь Как Огонь"
-            >
-        </div>
-        (Russian) Pop | SLAVA MARLOW - Ты Горишь Как Огонь
-    </a>
-
-
-    <a
-        class="button"
-        href="Music/ThreeStripesSong.html"
-        onclick="return explicitWarning()"
-    >
-        <div class="img-box">
-            <img
-                src="Music/Images/threestripes.png"
-                alt="Three Stripes"
-            >
-        </div>
-        (Russian) Pop | ТРИ ПОЛОСКИ / KOLM TRIIPU / THREE STRIPES
-    </a>
-
-
-    <a
-        class="button"
-        href="Music/NitroLXN.html"
-        onclick="return explicitWarning()"
-    >
-        <div class="img-box">
-            <img
-                src="Music/Images/Nitro.png"
-                alt="NITRO - LXNGVX"
-            >
-        </div>
-        Phonk | NITRO - LXNGVX
-    </a>
-
-
-    <a
-        class="button"
-        href="Music/BigDawgs.html"
-        onclick="return explicitWarning()"
-    >
-        <div class="img-box">
-            <img
-                src="Music/Images/bigdawgs.png"
-                alt="Big Dawgs - Hanumankind"
-            >
-        </div>
-        (Indian) Hip-Hop | Big Dawgs - Hanumankind
-    </a>
-
-
-    <a
-        class="button"
-        href="Music/IssamAlnajjar.html"
-        onclick="return explicitWarning()"
-    >
-        <div class="img-box">
-            <img
-                src="Music/Images/Issam Alnajjar.png"
-                alt="Hadal Ahbek"
-            >
-        </div>
-        (Arabic) Hip-Hop | Issam Alnajjar - Hadal Ahbek
-    </a>
-
-
-    <a
-        class="button"
-        href="Music/tvoff.html"
-        onclick="return explicitWarning()"
-    >
-        <div class="img-box">
-            <img
-                src="Music/Images/tvoff.png"
-                alt="Tv Off - Kendrick Lamar"
-            >
-        </div>
-        Conscious Hip-Hop | Tv Off - Kendrick Lamar
-    </a>
-
-
-    <a
-        class="button"
-        href="Music/traproyaltyextended.html"
-        onclick="return explicitWarning()"
-    >
-        <div class="img-box">
-            <img
-                src="Music/Images/traproyaltyextended.png"
-                alt="Trap Royalty Extended"
-            >
-        </div>
-        Cinematic Trap | Trap Royalty Extended
-    </a>
-
-
-    <a
-        class="button"
-        href="Music/odnogoultrafunk.html"
-        onclick="return explicitWarning()"
-    >
-        <div class="img-box">
-            <img
-                src="Music/Images/odnogoultrafunk.png"
-                alt="Odnogo Phonk - VaporVice"
-            >
-        </div>
-        (Russian) UltraPhonk | Odnogo Phonk - VaporVice
-    </a>
-
-
-    <a
-        class="button"
-        href="Music/mashaultrafunk.html"
-        onclick="return explicitWarning()"
-    >
-        <div class="img-box">
-            <img
-                src="Music/Images/mashaultrafunk.png"
-                alt="Masha Phonk - Histed"
-            >
-        </div>
-        (Russian) UltraPhonk | Masha Phonk - Histed
-    </a>
-
-
-    <a
-        class="button"
-        href="Music/skibidilittlebig.html"
-        onclick="return explicitWarning()"
-    >
-        <div class="img-box">
-            <img
-                src="Music/Images/littlebigskibidi.png"
-                alt="Skibidi - Little Big"
-            >
-        </div>
-        (Russian) Dance-Pop | Skibidi - Little Big
-    </a>
-
-
-    <a
-        class="button"
-        href="Music/banndabanda.html"
-        onclick="return explicitWarning()"
-    >
-        <div class="img-box">
-            <img
-                src="Music/Images/banndabanda.png"
-                alt="Bannda - Banda"
-            >
-        </div>
-        (Polish) Aggressive Rap | Bannda - Banda
-    </a>
-
-
-    <a
-        class="button"
-        href="Music/Banndabandaspedup.html"
-        onclick="return explicitWarning()"
-    >
-        <div class="img-box">
-            <img
-                src="Music/Images/banndabanda.png"
-                alt="Bannda - Banda Sped Up"
-            >
-        </div>
-        (Polish) Aggressive Rap | Bannda - Banda (Sped Up)
-    </a>
-
-
-    <a
-        class="button"
-        href="Music/withoutyoukevin.html"
-        onclick="return explicitWarning()"
-    >
-        <div class="img-box">
-            <img
-                src="Music/Images/withoutyoukevin.png"
-                alt="Without You - K3vin_g"
-            >
-        </div>
-        Friendly Pop | Without You - K3vin_g
-    </a>
-
-
-    <a
-        class="button"
-        href="Music/goodmorningbabbyjayy.html"
-        onclick="return explicitWarning()"
-    >
-        <div class="img-box">
-            <img
-                src="Music/Images/GoodMorningBabyJayy.png"
-                alt="Good Morning - Baby Jayy"
-            >
-        </div>
-        Passive Aggressive Trap / Pop-Rap | Good Morning - Baby Jayy
-    </a>
-
-
-    <a
-        class="button"
-        href="Music/Bazookasong.html"
-        onclick="return explicitWarning()"
-    >
-        <div class="img-box">
-            <img
-                src="Music/Images/Bazookasong.png"
-                alt="Bazooka - Miami XO"
-            >
-        </div>
-        Meme Song Remix | Bazooka - Miami XO
-    </a>
-
-
-    <a
-        class="button"
-        href="Music/Hypnodancer.html"
-        onclick="return explicitWarning()"
-    >
-        <div class="img-box">
-            <img
-                src="Music/Images/HypnoDancer.png"
-                alt="Hypno Dancer - Little Big"
-            >
-        </div>
-        Meme Song | Hypno Dancer - Little Big
-    </a>
-
-
-    <a
-        class="button"
-        href="Music/Faradenza.html"
-        onclick="return explicitWarning()"
-    >
-        <div class="img-box">
-            <img
-                src="Music/Images/Littlebigfaradenza.png"
-                alt="Faradenza - Little Big"
-            >
-        </div>
-        Viral Hit | Faradenza - Little Big
-    </a>
-
-
-    <a
-        class="button"
-        href="Music/Grannyshouse.html"
-        onclick="return explicitWarning()"
-    >
-        <div class="img-box">
-            <img
-                src="Music/Images/GrannysHouse.png"
-                alt="Granny's House - FGTeeV"
-            >
-        </div>
-        Viral Hit | Granny's House - FGTeeV
-    </a>
-
-
-    <a
-        class="button"
-        href="Music/Fishyonme.html"
-        onclick="return explicitWarning()"
-    >
-        <div class="img-box">
-            <img
-                src="Music/Images/Fishyonme.png"
-                alt="Fishy On Me - Tiko"
-            >
-        </div>
-        Fortnite Viral Hit | Fishy On Me - Tiko
-    </a>
-
-</div>
-
-
-<p class="CenterColor">
-    Click any song to unlock access.
-</p>
-
-
-<!-- =========================================================
-     HIDDEN SONG PAGE
-     ========================================================= -->
-
-<iframe
-    id="playlistFrame"
-    title="Hidden Music Player"
-></iframe>
-
+<!-- Hidden audio element (one per page — no iframes needed) -->
+<audio id="audioPlayer"></audio>
 
 <script>
-
 /* =========================================================
-   SONG DATABASE
+   SONG CATALOG — edit this list to add/remove songs.
+   Paths are relative to this file.
    ========================================================= */
 
-const songLinks = Array.from(
-    document.querySelectorAll("#songLibrary .button")
-);
-
-
-const songs = songLinks.map((link, index) => {
-
-    return {
-
-        id: index,
-
-        url: link.href,
-
-        title: link.innerText.trim(),
-
-        image:
-            link.querySelector("img")?.src || "",
-
-        alt:
-            link.querySelector("img")?.alt || ""
-
-    };
-
-});
-
-
 /* =========================================================
-   ADD + QUEUE BUTTONS TO EVERY SONG
+   SONG CATALOG
+   Paths are relative to this HTML file, inside Music/.
+   Audio: AllMusic/filename.mp3
+   Images: Images/filename.png
    ========================================================= */
-
-songs.forEach(song => {
-
-    const link = songLinks[song.id];
-
-    if (!link) {
-        return;
+const SONG_CATALOG = [
+    {
+        name: "67 Phonk",
+        artist: "Spyrix",
+        audio: "Music/AllMusic//67PHONK.mp3",
+        image: "Music/Images/67PhonkSpyrix.png",
+        category: "Phonk"
+    },
+    {
+        name: "Ты Горишь Как Огонь",
+        artist: "SLAVA MARLOW",
+        audio: "Music/AllMusic/SLAVA_MARLOW._FireSong.mp3",
+        image: "Music/Images/SlavaFireSong.png",
+        category: "(Russian) Pop"
+    },
+    {
+        name: "Three Stripes",
+        artist: "ТРИ ПОЛОСКИ",
+        audio: "Music/AllMusic/ТРИ ПОЛОСКИ _ KOLM TRIIPU _ THREE STRIPES.mp3",
+        image: "Music/Images/threestripes.png",
+        category: "(Russian) Pop"
+    },
+    {
+        name: "NITRO",
+        artist: "LXNGVX",
+        audio: "Music/AllMusic/NITRO.mp3",
+        image: "Music/Images/Nitro.png",
+        category: "Phonk"
+    },
+    {
+        name: "Big Dawgs",
+        artist: "Hanumankind",
+        audio: "Music/AllMusic/Big_Dawgs.mp3",
+        image: "Music/Images/bigdawgs.png",
+        category: "(Indian) Hip-Hop"
+    },
+    {
+        name: "Hadal Ahbek",
+        artist: "Issam Alnajjar",
+        audio: "Music/AllMusic/Issam Alnajjar - Hadal Ahbek (Performance Video).mp3",
+        image: "Music/Images/Issam Alnajjar.png",
+        category: "(Arabic) Hip-Hop"
+    },
+    {
+        name: "TV Off",
+        artist: "Kendrick Lamar",
+        audio: "Music/AllMusic/tv off.mp3",
+        image: "Music/Images/tvoff.png",
+        category: "Hip-Hop"
+    },
+    {
+        name: "Trap Royalty (Extended)",
+        artist: "Unknown",
+        audio: "Music/AllMusic/traproyaltyextended.mp3",
+        image: "Music/Images/traproyaltyextended.png",
+        category: "Trap"
+    },
+    {
+        name: "Odnogo Phonk",
+        artist: "VaporVice",
+        audio: "Music/AllMusic/odnogoultrafunk.mp3",
+        image: "Music/Images/odnogoultrafunk.png",
+        category: "(Russian) UltraPhonk"
+    },
+    {
+        name: "Masha Phonk",
+        artist: "Histed",
+        audio: "Music/AllMusic/mashaultrafunk.mp3",
+        image: "Music/Images/mashaultrafunk.png",
+        category: "(Russian) UltraPhonk"
+    },
+    {
+        name: "Skibidi",
+        artist: "Little Big",
+        audio: "Music/AllMusic/skibidilittlebig.mp3",
+        image: "Music/Images/littlebigskibidi.png",
+        category: "(Russian) Dance-Pop"
+    },
+    {
+        name: "Bannda",
+        artist: "Banda",
+        audio: "Music/AllMusic/bannda-banda.mp3",
+        image: "Music/Images/banndabanda.png",
+        category: "(Polish) Rap"
+    },
+    {
+        name: "Bannda (Sped Up)",
+        artist: "Banda",
+        audio: "Music/AllMusic/Bannda-Banda-SpedUp.mp3",
+        image: "Music/Images/banndabanda.png",
+        category: "(Polish) Rap"
+    },
+    {
+        name: "Without You",
+        artist: "K3vin_g",
+        audio: "Music/AllMusic/withoutyoukevin.mp3",
+        image: "Music/Images/withoutyoukevin.png",
+        category: "Pop"
+    },
+    {
+        name: "Good Morning",
+        artist: "Baby Jayy",
+        audio: "Music/AllMusic/GoodMorningBabyJayy.mp3",
+        image: "Music/Images/GoodMorningBabyJayy.png",
+        category: "Trap"
+    },
+    {
+        name: "Bazooka",
+        artist: "Miami XO",
+        audio: "Music/AllMusic/Bazookasong.mp3",
+        image: "Music/Images/Bazookasong.png",
+        category: "Meme Remix"
+    },
+    {
+        name: "Hypno Dancer",
+        artist: "Little Big",
+        audio: "Music/AllMusic/LittleBigHypnoDancer.mp3",
+        image: "Music/Images/HypnoDancer.png",
+        category: "Meme Song"
+    },
+    {
+        name: "Faradenza",
+        artist: "Little Big",
+        audio: "Music/AllMusic/LittleBigFaradenza.mp3",
+        image: "Music/Images/Littlebigfaradenza.png",
+        category: "Viral Hit"
+    },
+    {
+        name: "Granny's House",
+        artist: "FGTeeV",
+        audio: "Music/AllMusic/GrannysHouse.mp3",
+        image: "Music/Images/GrannysHouse.png",
+        category: "Viral Hit"
+    },
+    {
+        name: "Fishy On Me",
+        artist: "Tiko",
+        audio: "Music/AllMusic/Fishyonme.mp3",
+        image: "Music/Images/FishyOnme.png",
+        category: "Fortnite Hit"
     }
-
-    const button =
-        document.createElement("button");
-
-    button.type = "button";
-    button.className = "queue-add-button";
-    button.dataset.songId = song.id;
-    button.textContent = "+ Queue";
-    button.title = "Add to queue";
-
-    button.addEventListener(
-        "click",
-        event => addSongFromButton(event, song.id)
-    );
-
-    link.appendChild(button);
-
-});
+];
 
 
 /* =========================================================
-   ADD SONG FROM LIBRARY BUTTON
+   STATE
    ========================================================= */
-
-function addSongFromButton(event, songId) {
-
-    event.preventDefault();
-    event.stopPropagation();
-
-    const song = songs.find(
-        item => item.id === Number(songId)
-    );
-
-    if (!song) {
-        return;
-    }
-
-    const added = addSong(song);
-    const button = event.currentTarget;
-
-    if (!added) {
-        button.textContent = "✓ In Queue";
-        button.classList.add("in-queue");
-        button.disabled = true;
-        return;
-    }
-
-    button.textContent = "✓ In Queue";
-    button.classList.add("in-queue");
-    button.disabled = true;
-
-    updateStatus(
-        "Added to queue: " + song.title
-    );
-}
-
-
-/* =========================================================
-   PLAYLIST STATE
-   ========================================================= */
-
-
-let queue = [];
-
-let currentIndex = -1;
-
-let currentMedia = null;
-
-let playlistPlaying = false;
-
+let songs = [];          // library entries
+let songCards = [];      // DOM cards (for search)
+let queue = [];          // songs currently in the queue
+let currentIndex = -1;   // which queue item is playing
+let playing = false;
 let sleepTimer = null;
-
-let sleepTimerEnd = null;
-
 let muted = false;
 
-let lastVolume =
-    Number(
-        localStorage.getItem("musicVolume") || "1"
-    );
+/* =========================================================
+   DOM REFERENCES
+   ========================================================= */
+const audio        = document.getElementById("audioPlayer");
+const queueList    = document.getElementById("queueList");
+const queueCount   = document.getElementById("queueCount");
+const statusEl     = document.getElementById("status");
+const titleEl      = document.getElementById("nowPlayingTitle");
+const stateEl      = document.getElementById("nowPlayingState");
+const playBtn      = document.getElementById("playPauseButton");
+const progressBar  = document.getElementById("progressBar");
+const currentEl    = document.getElementById("currentTime");
+const totalEl      = document.getElementById("totalTime");
+const volumeSlider = document.getElementById("volumeSlider");
+const speedSelect  = document.getElementById("speedSelect");
+const searchInput  = document.getElementById("searchInput");
+const queueSearch  = document.getElementById("queueSearch");
 
+const savedVolume = Number(localStorage.getItem("musicVolume") || "1");
+volumeSlider.value = savedVolume;
 
 /* =========================================================
-   ELEMENTS
+   BUILD LIBRARY
    ========================================================= */
+function buildLibrary() {
+    const library = document.getElementById("songLibrary");
+    library.innerHTML = "";
+    songCards = [];
+    songs = [];
 
-const playlistFrame =
-    document.getElementById("playlistFrame");
+    SONG_CATALOG.forEach((entry, index) => {
+        const song = {
+            id: index,
+            title: (entry.category ? entry.category + " | " : "") + entry.name + " — " + entry.artist,
+            audio: entry.audio,
+            image: entry.image
+        };
+        songs.push(song);
 
-const queueElement =
-    document.getElementById("songCheckboxes");
+        const card = document.createElement("div");
+        card.className = "song-card";
+        card.onclick = () => { addToQueue(index); };
 
-const queueCount =
-    document.getElementById("queueCount");
+        const imgBox = document.createElement("div");
+        imgBox.className = "img-box";
+        const img = document.createElement("img");
+        img.src = entry.image;
+        img.alt = entry.name;
+        imgBox.appendChild(img);
+        card.appendChild(imgBox);
 
-const playlistStatus =
-    document.getElementById("playlistStatus");
+        const label = document.createElement("div");
+        label.textContent = song.title;
+        card.appendChild(label);
 
-const nowPlayingTitle =
-    document.getElementById("nowPlayingTitle");
+        const addBtn = document.createElement("button");
+        addBtn.className = "queue-add-button";
+        addBtn.textContent = "+ Queue";
+        addBtn.onclick = (e) => {
+            e.stopPropagation();
+            addToQueue(index);
+        };
+        card.appendChild(addBtn);
 
-const nowPlayingState =
-    document.getElementById("nowPlayingState");
+        library.appendChild(card);
+        songCards.push(card);
+    });
 
-const playPauseButton =
-    document.getElementById("playPauseButton");
-
-const progressBar =
-    document.getElementById("progressBar");
-
-const currentTimeElement =
-    document.getElementById("currentTime");
-
-const totalTimeElement =
-    document.getElementById("totalTime");
-
-const volumeSlider =
-    document.getElementById("volumeSlider");
-
-const speedSelect =
-    document.getElementById("speedSelect");
-
-const searchInput =
-    document.getElementById("searchInput");
-
-const queueSearch =
-    document.getElementById("queueSearch");
-
-
-volumeSlider.value =
-    lastVolume;
-
-
-/* =========================================================
-   TIME FORMAT
-   ========================================================= */
-
-function formatTime(seconds) {
-
-    if (!Number.isFinite(seconds)) {
-        return "0:00";
-    }
-
-    seconds = Math.max(0, Math.floor(seconds));
-
-    const minutes =
-        Math.floor(seconds / 60);
-
-    const remainingSeconds =
-        seconds % 60;
-
-    return (
-        minutes +
-        ":" +
-        String(remainingSeconds).padStart(2, "0")
-    );
-
+    updateCardButtons();
 }
 
+function updateCardButtons() {
+    songCards.forEach((card, i) => {
+        const btn = card.querySelector(".queue-add-button");
+        const inQueue = queue.some(s => s.id === i);
+        btn.textContent = inQueue ? "✓ In Queue" : "+ Queue";
+        btn.classList.toggle("in-queue", inQueue);
+    });
+}
+
+/* =========================================================
+   QUEUE
+   ========================================================= */
+function addToQueue(id) {
+    const song = songs[id];
+    if (!song) return;
+    if (queue.some(s => s.id === id)) return;
+    queue.push(song);
+    renderQueue();
+    updateCardButtons();
+    setStatus("Added to queue: " + song.title);
+}
+
+function removeFromQueue(index) {
+    if (index < 0 || index >= queue.length) return;
+    if (index === currentIndex) stopPlayback();
+    queue.splice(index, 1);
+    if (index < currentIndex) currentIndex--;
+    if (currentIndex >= queue.length) currentIndex = queue.length - 1;
+    renderQueue();
+    updateCardButtons();
+}
+
+function clearQueue() {
+    stopPlayback();
+    queue = [];
+    currentIndex = -1;
+    renderQueue();
+    updateCardButtons();
+}
+
+function shuffleQueue() {
+    if (queue.length < 2) return;
+    const currentSong = queue[currentIndex];
+
+    for (let i = queue.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [queue[i], queue[j]] = [queue[j], queue[i]];
+    }
+
+    if (currentSong) {
+        currentIndex = queue.findIndex(s => s.id === currentSong.id);
+    }
+    renderQueue();
+}
 
 /* =========================================================
    RENDER QUEUE
    ========================================================= */
-
 function renderQueue() {
-
-    queueElement.innerHTML = "";
-
-    queueCount.textContent =
-        queue.length +
-        (queue.length === 1 ? " song" : " songs");
+    queueList.innerHTML = "";
+    queueCount.textContent = queue.length + (queue.length === 1 ? " song" : " songs");
 
     if (!queue.length) {
-        queueElement.innerHTML =
-            `<div style="padding:20px;text-align:center;color:#777;">
-                Your queue is empty.<br>
-                Use <b style="color:var(--green);">+ Queue</b> on a song to add it.
-            </div>`;
+        queueList.innerHTML = '<div style="padding:20px;text-align:center;color:#777;">Queue is empty. Click a song to add it.</div>';
         return;
     }
 
     queue.forEach((song, index) => {
-
         const item = document.createElement("div");
-
-        item.className =
-            "queue-item" +
-            (index === currentIndex ? " current" : "");
-
+        item.className = "queue-item" + (index === currentIndex ? " current" : "");
         item.draggable = true;
         item.dataset.index = index;
 
         const handle = document.createElement("span");
-        handle.className = "queue-drag-handle";
+        handle.className = "queue-handle";
         handle.textContent = "☷";
-        handle.title = "Drag to reorder";
-
-        const info = document.createElement("div");
-        info.className = "queue-info";
 
         const title = document.createElement("div");
         title.className = "queue-title";
-
-        title.innerHTML =
-            `<span class="queue-number">${index + 1}.</span>` +
-            escapeHTML(song.title);
-
-        info.appendChild(title);
+        title.innerHTML = `<span class="queue-number">${index + 1}.</span>${escapeHTML(song.title)}`;
 
         const actions = document.createElement("div");
         actions.className = "queue-actions";
 
-        const play =
-            createQueueButton(
-                "▶",
-                () => playQueueIndex(index)
-            );
+        const playBtnEl = document.createElement("button");
+        playBtnEl.className = "queue-action";
+        playBtnEl.textContent = "▶";
+        playBtnEl.onclick = () => playIndex(index);
 
-        const remove =
-            createQueueButton(
-                "✕",
-                () => removeFromQueue(index)
-            );
+        const removeBtn = document.createElement("button");
+        removeBtn.className = "queue-action";
+        removeBtn.textContent = "✕";
+        removeBtn.onclick = () => removeFromQueue(index);
 
-        actions.appendChild(play);
-        actions.appendChild(remove);
+        actions.appendChild(playBtnEl);
+        actions.appendChild(removeBtn);
 
         item.appendChild(handle);
-        item.appendChild(info);
+        item.appendChild(title);
         item.appendChild(actions);
 
-        item.addEventListener("dragstart", event => {
+        // Drag to reorder
+        item.addEventListener("dragstart", (e) => {
             item.classList.add("dragging");
-            event.dataTransfer.effectAllowed = "move";
-            event.dataTransfer.setData("text/plain", String(index));
+            e.dataTransfer.effectAllowed = "move";
+            e.dataTransfer.setData("text/plain", String(index));
         });
-
         item.addEventListener("dragend", () => {
             item.classList.remove("dragging");
-            queueElement
-                .querySelectorAll(".queue-item")
-                .forEach(el => el.classList.remove("drag-over"));
+            queueList.querySelectorAll(".queue-item").forEach(el => el.classList.remove("drag-over"));
         });
-
-        item.addEventListener("dragover", event => {
-            event.preventDefault();
-            event.dataTransfer.dropEffect = "move";
+        item.addEventListener("dragover", (e) => {
+            e.preventDefault();
             item.classList.add("drag-over");
         });
-
-        item.addEventListener("dragleave", () => {
+        item.addEventListener("dragleave", () => item.classList.remove("drag-over"));
+        item.addEventListener("drop", (e) => {
+            e.preventDefault();
             item.classList.remove("drag-over");
-        });
+            const from = Number(e.dataTransfer.getData("text/plain"));
+            const to = index;
+            if (isNaN(from) || from === to) return;
 
-        item.addEventListener("drop", event => {
-            event.preventDefault();
-            item.classList.remove("drag-over");
+            const moved = queue.splice(from, 1)[0];
+            queue.splice(to, 0, moved);
 
-            const fromIndex =
-                Number(event.dataTransfer.getData("text/plain"));
-
-            const toIndex = index;
-
-            if (
-                Number.isNaN(fromIndex) ||
-                fromIndex === toIndex ||
-                fromIndex < 0 ||
-                fromIndex >= queue.length
-            ) {
-                return;
-            }
-
-            const movedSong = queue.splice(fromIndex, 1)[0];
-
-            queue.splice(toIndex, 0, movedSong);
-
-            // Keep the currently playing song pointing at the same song.
-            if (currentIndex === fromIndex) {
-                currentIndex = toIndex;
-            } else if (
-                fromIndex < currentIndex &&
-                toIndex >= currentIndex
-            ) {
-                currentIndex--;
-            } else if (
-                fromIndex > currentIndex &&
-                toIndex <= currentIndex
-            ) {
-                currentIndex++;
-            }
+            if (currentIndex === from) currentIndex = to;
+            else if (from < currentIndex && to >= currentIndex) currentIndex--;
+            else if (from > currentIndex && to <= currentIndex) currentIndex++;
 
             renderQueue();
         });
 
-        queueElement.appendChild(item);
+        queueList.appendChild(item);
     });
 }
 
-function createQueueButton(text, callback) {
-
-    const button =
-        document.createElement("button");
-
-    button.className =
-        "queue-action";
-
-    button.type =
-        "button";
-
-    button.textContent =
-        text;
-
-    button.onclick =
-        callback;
-
-    return button;
-
+/* =========================================================
+   PLAYBACK
+   ========================================================= */
+function playFirst() {
+    if (!queue.length) { alert("Your playlist is empty."); return; }
+    currentIndex = 0;
+    loadCurrent();
 }
 
+function playIndex(index) {
+    if (index < 0 || index >= queue.length) return;
+    currentIndex = index;
+    loadCurrent();
+}
+
+function loadCurrent() {
+    if (!queue.length) { playing = false; return; }
+    if (currentIndex < 0 || currentIndex >= queue.length) currentIndex = 0;
+
+    const song = queue[currentIndex];
+    playing = true;
+
+    titleEl.textContent = song.title;
+    stateEl.textContent = "Loading...";
+    setStatus("Playing: " + song.title);
+    renderQueue();
+
+    audio.src = song.audio;
+    audio.volume = Number(volumeSlider.value);
+    audio.playbackRate = Number(speedSelect.value);
+    audio.currentTime = 0;
+
+    const start = Number(document.getElementById("startTimeInput").value);
+    if (start > 0) {
+        audio.addEventListener("loadedmetadata", function once() {
+            if (start < audio.duration) audio.currentTime = start;
+            audio.removeEventListener("loadedmetadata", once);
+        });
+    }
+
+    const p = audio.play();
+    if (p && p.catch) {
+        p.catch(err => {
+            console.warn("Autoplay blocked:", err);
+            stateEl.textContent = "Press Play to start";
+            updatePlayButton();
+        });
+    }
+}
+
+function togglePlay() {
+    if (!audio.src) {
+        if (queue.length) {
+            if (currentIndex < 0) currentIndex = 0;
+            loadCurrent();
+        }
+        return;
+    }
+    if (audio.paused) audio.play();
+    else audio.pause();
+}
+
+function updatePlayButton() {
+    if (!audio.paused) {
+        playBtn.textContent = "⏸";
+        stateEl.textContent = "Playing";
+    } else {
+        playBtn.textContent = "▶";
+        if (audio.src) stateEl.textContent = "Paused";
+    }
+}
+
+function nextSong() {
+    if (!queue.length) return;
+
+    if (document.getElementById("shuffleToggle").checked) {
+        let next;
+        do { next = Math.floor(Math.random() * queue.length); }
+        while (queue.length > 1 && next === currentIndex);
+        currentIndex = next;
+    } else {
+        currentIndex++;
+    }
+
+    if (currentIndex >= queue.length) {
+        if (document.getElementById("loopToggle").checked) {
+            currentIndex = 0;
+        } else {
+            playing = false;
+            setStatus("Playlist finished.");
+            stateEl.textContent = "Finished";
+            return;
+        }
+    }
+    loadCurrent();
+}
+
+function previousSong() {
+    if (!queue.length) return;
+    if (audio.currentTime > 5) { audio.currentTime = 0; return; }
+    currentIndex--;
+    if (currentIndex < 0) {
+        currentIndex = document.getElementById("loopToggle").checked ? queue.length - 1 : 0;
+    }
+    loadCurrent();
+}
+
+function stopPlayback() {
+    playing = false;
+    audio.pause();
+    audio.removeAttribute("src");
+    audio.load();
+    playBtn.textContent = "▶";
+    titleEl.textContent = "Nothing playing";
+    stateEl.textContent = "Stopped";
+    setStatus("Playlist stopped.");
+    progressBar.value = 0;
+    currentEl.textContent = "0:00";
+    totalEl.textContent = "0:00";
+}
+
+function skip(seconds) {
+    if (!audio.src) return;
+    audio.currentTime = Math.max(0, Math.min(audio.duration || Infinity, audio.currentTime + seconds));
+}
 
 /* =========================================================
-   ESCAPE HTML
+   AUDIO EVENTS
    ========================================================= */
+audio.addEventListener("ended", () => {
+    if (!playing) return;
+    if (document.getElementById("repeatToggle").checked) {
+        audio.currentTime = 0;
+        audio.play();
+    } else {
+        nextSong();
+    }
+});
+
+audio.addEventListener("error", () => {
+    if (!queue.length) return;
+    setStatus("Error playing " + queue[currentIndex].title + ". Skipping...");
+    setTimeout(nextSong, 500);
+});
+
+audio.addEventListener("timeupdate", () => {
+    if (Number.isFinite(audio.duration) && audio.duration > 0) {
+        progressBar.value = (audio.currentTime / audio.duration) * 100;
+    }
+    currentEl.textContent = formatTime(audio.currentTime);
+});
+
+audio.addEventListener("loadedmetadata", () => {
+    totalEl.textContent = formatTime(audio.duration);
+});
+
+audio.addEventListener("play",  updatePlayButton);
+audio.addEventListener("pause", updatePlayButton);
+
+/* =========================================================
+   CONTROLS
+   ========================================================= */
+progressBar.addEventListener("input", function () {
+    if (audio.duration) audio.currentTime = (Number(this.value) / 100) * audio.duration;
+});
+
+volumeSlider.addEventListener("input", function () {
+    const v = Number(this.value);
+    localStorage.setItem("musicVolume", v);
+    audio.volume = v;
+});
+
+speedSelect.addEventListener("change", function () {
+    audio.playbackRate = Number(this.value);
+});
+
+function toggleMute() {
+    if (!audio.src) return;
+    muted = !muted;
+    audio.muted = muted;
+}
+
+function applyStartTime() {
+    if (!audio.src) return;
+    const s = Number(document.getElementById("startTimeInput").value);
+    if (!Number.isFinite(s) || s < 0) { alert("Enter a valid start time."); return; }
+    if (audio.duration && s >= audio.duration) { alert("That time is longer than the song."); return; }
+    audio.currentTime = s;
+}
+
+/* =========================================================
+   SLEEP TIMER
+   ========================================================= */
+document.getElementById("sleepTimerSelect").addEventListener("change", function () {
+    const minutes = Number(this.value);
+    if (sleepTimer) { clearTimeout(sleepTimer); sleepTimer = null; }
+
+    if (minutes === 0) {
+        document.getElementById("sleepStatus").textContent = "Sleep timer off";
+        return;
+    }
+
+    document.getElementById("sleepStatus").textContent = "Stops in " + minutes + " minute" + (minutes === 1 ? "" : "s");
+    sleepTimer = setTimeout(() => {
+        stopPlayback();
+        document.getElementById("sleepStatus").textContent = "Sleep timer stopped playback.";
+    }, minutes * 60 * 1000);
+});
+
+/* =========================================================
+   SEARCH
+   ========================================================= */
+searchInput.addEventListener("input", function () {
+    const q = this.value.trim().toLowerCase();
+    let visible = 0;
+
+    songCards.forEach(card => {
+        const matches = card.innerText.toLowerCase().includes(q);
+        card.classList.toggle("hidden", !matches);
+        if (matches) visible++;
+    });
+
+    document.getElementById("searchResultsText").textContent =
+        q ? `${visible} song${visible === 1 ? "" : "s"} found` : "Showing all songs";
+});
+
+queueSearch.addEventListener("input", function () {
+    const q = this.value.trim().toLowerCase();
+    queueList.querySelectorAll(".queue-item").forEach(item => {
+        item.style.display = item.innerText.toLowerCase().includes(q) ? "flex" : "none";
+    });
+});
+
+/* =========================================================
+   KEYBOARD SHORTCUTS
+   ========================================================= */
+document.addEventListener("keydown", function (e) {
+    const tag = e.target.tagName.toLowerCase();
+    if (tag === "input" || tag === "textarea" || tag === "select") return;
+
+    if (e.code === "Space")  { e.preventDefault(); togglePlay(); }
+    if (e.code === "ArrowLeft")  skip(-10);
+    if (e.code === "ArrowRight") skip(10);
+    if (e.key.toLowerCase() === "n") nextSong();
+    if (e.key.toLowerCase() === "p") previousSong();
+});
+
+/* =========================================================
+   HELPERS
+   ========================================================= */
+function formatTime(seconds) {
+    if (!Number.isFinite(seconds)) return "0:00";
+    seconds = Math.max(0, Math.floor(seconds));
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return m + ":" + String(s).padStart(2, "0");
+}
 
 function escapeHTML(value) {
-
     return value
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
-
 }
 
-
-/* =========================================================
-   ADD SONG
-   ========================================================= */
-
-function addSong(song) {
-
-    if (
-        queue.some(
-            existing => existing.id === song.id
-        )
-    ) {
-
-        return false;
-
-    }
-
-
-    queue.push(song);
-
-    renderQueue();
-
-    return true;
-
+function setStatus(text) {
+    statusEl.textContent = text;
 }
 
-
 /* =========================================================
-   REMOVE SONG
+   START
    ========================================================= */
-
-function removeFromQueue(index) {
-
-    if (
-        index < 0 ||
-        index >= queue.length
-    ) {
-        return;
-    }
-
-
-    if (index === currentIndex) {
-
-        stopPlaylist();
-
-    }
-
-
-    queue.splice(index, 1);
-
-
-    if (index < currentIndex) {
-        currentIndex--;
-    }
-
-
-    if (
-        currentIndex >= queue.length
-    ) {
-        currentIndex =
-            queue.length - 1;
-    }
-
-
-    renderQueue();
-
-}
-
-
-/* =========================================================
-   MOVE SONG
-   ========================================================= */
-
-function moveQueue(index, direction) {
-
-    const newIndex =
-        index + direction;
-
-
-    if (
-        newIndex < 0 ||
-        newIndex >= queue.length
-    ) {
-        return;
-    }
-
-
-    [
-        queue[index],
-        queue[newIndex]
-    ] =
-    [
-        queue[newIndex],
-        queue[index]
-    ];
-
-
-    if (currentIndex === index) {
-
-        currentIndex =
-            newIndex;
-
-    } else if (
-        currentIndex === newIndex
-    ) {
-
-        currentIndex =
-            index;
-
-    }
-
-
-    renderQueue();
-
-}
-
-
-/* =========================================================
-   CLEAR QUEUE
-   ========================================================= */
-
-function clearQueue() {
-
-    stopPlaylist();
-
-    queue = [];
-
-    currentIndex = -1;
-
-    renderQueue();
-
-}
-
-
-/* =========================================================
-   SELECT ALL
-   ========================================================= */
-
-function selectAllSongs() {
-
-    queue = [];
-
-    songs.forEach(song => {
-        queue.push(song);
-    });
-
-    renderQueue();
-
-}
-
-
-/* =========================================================
-   CLEAR ALL
-   ========================================================= */
-
-function clearAllSongs() {
-
-    queue = [];
-
-    currentIndex = -1;
-
-    stopPlaylist();
-
-    renderQueue();
-
-}
-
-
-/* =========================================================
-   ADD SEARCH RESULTS
-   ========================================================= */
-
-function addVisibleSongs() {
-
-    const query =
-        queueSearch.value
-            .trim()
-            .toLowerCase();
-
-
-    songs.forEach(song => {
-
-        if (
-            !query ||
-            song.title.toLowerCase().includes(query)
-        ) {
-
-            addSong(song);
-
-        }
-
-    });
-
-
-    renderQueue();
-
-}
-
-
-/* =========================================================
-   PLAYLIST LOOP
-   ========================================================= */
-
-function togglePlaylistLoop(enabled) {
-
-    playlistLoop = Boolean(enabled);
-
-    updateStatus(
-        playlistLoop
-            ? "Playlist loop enabled."
-            : "Playlist loop disabled."
-    );
-}
-
-
-/* =========================================================
-   SHUFFLE QUEUE
-   ========================================================= */
-
-function shuffleQueue() {
-
-    if (queue.length < 2) {
-        return;
-    }
-
-
-    const currentSong =
-        queue[currentIndex];
-
-
-    for (
-        let i = queue.length - 1;
-        i > 0;
-        i--
-    ) {
-
-        const j =
-            Math.floor(
-                Math.random() * (i + 1)
-            );
-
-
-        [
-            queue[i],
-            queue[j]
-        ] =
-        [
-            queue[j],
-            queue[i]
-        ];
-
-    }
-
-
-    if (currentSong) {
-
-        currentIndex =
-            queue.findIndex(
-                song =>
-                    song.id === currentSong.id
-            );
-
-    }
-
-
-    renderQueue();
-
-}
-
-
-/* =========================================================
-   PLAY SELECTED SONGS
-   ========================================================= */
-
-function playSelectedSongs() {
-
-    if (!queue.length) {
-
-        alert(
-            "Your playlist is empty."
-        );
-
-        return;
-
-    }
-
-    currentIndex = 0;
-    playCurrentSong();
-
-}
-
-
-/* =========================================================
-   PLAY FIRST SONG
-   ========================================================= */
-
-
-
-function playFirstSong() {
-
-    if (!queue.length) {
-
-        alert(
-            "Your playlist is empty."
-        );
-
-        return;
-
-    }
-
-
-    currentIndex = 0;
-
-    playCurrentSong();
-
-}
-
-
-/* =========================================================
-   PLAY SPECIFIC QUEUE INDEX
-   ========================================================= */
-
-function playQueueIndex(index) {
-
-    if (
-        index < 0 ||
-        index >= queue.length
-    ) {
-        return;
-    }
-
-
-    currentIndex = index;
-
-    playCurrentSong();
-
-}
-
-
-/* =========================================================
-   LOAD CURRENT SONG
-   ========================================================= */
-
-function playCurrentSong() {
-
-    if (!queue.length) {
-
-        playlistPlaying = false;
-
-        updateStatus(
-            "Playlist is empty."
-        );
-
-        return;
-
-    }
-
-
-    if (
-        currentIndex < 0 ||
-        currentIndex >= queue.length
-    ) {
-
-        currentIndex = 0;
-
-    }
-
-
-    const song =
-        queue[currentIndex];
-
-
-    playlistPlaying = true;
-
-
-    nowPlayingTitle.textContent =
-        song.title;
-
-
-    nowPlayingState.textContent =
-        "Loading...";
-
-
-    updateStatus(
-        "Loading: " +
-        song.title
-    );
-
-
-    renderQueue();
-
-
-    playlistFrame.onload =
-        handleFrameLoaded;
-
-
-    playlistFrame.src =
-        song.url;
-
-}
-
-
-/* =========================================================
-   FRAME LOADED
-   ========================================================= */
-
-function handleFrameLoaded() {
-
-    if (!playlistPlaying) {
-        return;
-    }
-
-
-    let frameDocument;
-
-
-    try {
-
-        frameDocument =
-            playlistFrame.contentDocument ||
-            playlistFrame.contentWindow.document;
-
-    } catch (error) {
-
-        updateStatus(
-            "Could not access the music player."
-        );
-
-        playlistPlaying = false;
-
-        return;
-
-    }
-
-
-    if (!frameDocument) {
-
-        updateStatus(
-            "Music page could not be loaded."
-        );
-
-        playlistPlaying = false;
-
-        return;
-
-    }
-
-
-    const media =
-        frameDocument.querySelector(
-            "audio, video"
-        );
-
-
-    if (!media) {
-
-        updateStatus(
-            "No audio/video player was found."
-        );
-
-        playlistPlaying = false;
-
-        return;
-
-    }
-
-
-    currentMedia = media;
-
-
-    media.onended =
-        handleSongEnded;
-
-
-    media.onerror =
-        handleSongError;
-
-
-    media.ontimeupdate =
-        updateProgress;
-
-
-    media.onloadedmetadata =
-        updateDuration;
-
-
-    media.onplay =
-        updatePlayButton;
-
-
-    media.onpause =
-        updatePlayButton;
-
-
-    media.volume =
-        Number(volumeSlider.value);
-
-
-    media.playbackRate =
-        Number(speedSelect.value);
-
-
-    nowPlayingState.textContent =
-        "Playing";
-
-
-    updateStatus(
-        "Playing: " +
-        queue[currentIndex].title
-    );
-
-
-    updateDuration();
-
-
-    const requestedStart =
-        Number(
-            document.getElementById(
-                "startTimeInput"
-            ).value
-        );
-
-
-    if (
-        requestedStart > 0 &&
-        requestedStart < media.duration
-    ) {
-
-        media.currentTime =
-            requestedStart;
-
-    }
-
-
-    const promise =
-        media.play();
-
-
-    if (
-        promise &&
-        promise.catch
-    ) {
-
-        promise.catch(error => {
-
-            console.warn(
-                "Autoplay blocked:",
-                error
-            );
-
-
-            nowPlayingState.textContent =
-                "Press Play to start";
-
-            updatePlayButton();
-
-        });
-
-    }
-
-}
-
-
-/* =========================================================
-   PLAY / PAUSE
-   ========================================================= */
-
-function togglePlayPause() {
-
-    if (!currentMedia) {
-
-        if (queue.length) {
-
-            if (currentIndex < 0) {
-                currentIndex = 0;
-            }
-
-            playCurrentSong();
-
-        }
-
-        return;
-
-    }
-
-
-    if (currentMedia.paused) {
-
-        currentMedia.play();
-
-    } else {
-
-        currentMedia.pause();
-
-    }
-
-}
-
-
-/* =========================================================
-   PLAY BUTTON ICON
-   ========================================================= */
-
-function updatePlayButton() {
-
-    if (
-        currentMedia &&
-        !currentMedia.paused
-    ) {
-
-        playPauseButton.textContent =
-            "⏸";
-
-        nowPlayingState.textContent =
-            "Playing";
-
-    } else {
-
-        playPauseButton.textContent =
-            "▶";
-
-        if (currentMedia) {
-
-            nowPlayingState.textContent =
-                "Paused";
-
-        }
-
-    }
-
-}
-
-
-/* =========================================================
-   NEXT SONG
-   ========================================================= */
-
-function nextSong() {
-
-    if (!queue.length) {
-        return;
-    }
-
-
-    if (
-        document.getElementById(
-            "shuffleToggle"
-        ).checked
-    ) {
-
-        let next;
-
-        do {
-
-            next =
-                Math.floor(
-                    Math.random() *
-                    queue.length
-                );
-
-        } while (
-            queue.length > 1 &&
-            next === currentIndex
-        );
-
-
-        currentIndex = next;
-
-    } else {
-
-        currentIndex++;
-
-    }
-
-
-    if (
-        currentIndex >= queue.length
-    ) {
-
-        if (
-            document.getElementById(
-                "loopToggle"
-            ).checked
-        ) {
-
-            currentIndex = 0;
-
-        } else {
-
-            playlistPlaying = false;
-
-            updateStatus(
-                "Playlist finished."
-            );
-
-            nowPlayingState.textContent =
-                "Finished";
-
-            return;
-
-        }
-
-    }
-
-
-    playCurrentSong();
-
-}
-
-
-/* =========================================================
-   PREVIOUS SONG
-   ========================================================= */
-
-function previousSong() {
-
-    if (!queue.length) {
-        return;
-    }
-
-
-    if (
-        currentMedia &&
-        currentMedia.currentTime > 5
-    ) {
-
-        currentMedia.currentTime = 0;
-
-        return;
-
-    }
-
-
-    currentIndex--;
-
-
-    if (currentIndex < 0) {
-
-        currentIndex =
-            document.getElementById(
-                "loopToggle"
-            ).checked
-                ? queue.length - 1
-                : 0;
-
-    }
-
-
-    playCurrentSong();
-
-}
-
-
-/* =========================================================
-   SONG ENDED
-   ========================================================= */
-
-function handleSongEnded() {
-
-    if (!playlistPlaying) {
-        return;
-    }
-
-
-    if (
-        document.getElementById(
-            "repeatSongToggle"
-        ).checked
-    ) {
-
-        currentMedia.currentTime = 0;
-
-        currentMedia.play();
-
-        return;
-
-    }
-
-
-    nextSong();
-
-}
-
-
-/* =========================================================
-   SONG ERROR
-   ========================================================= */
-
-function handleSongError() {
-
-    updateStatus(
-        "Error playing " +
-        queue[currentIndex].title +
-        ". Skipping..."
-    );
-
-
-    setTimeout(
-        () => nextSong(),
-        500
-    );
-
-}
-
-
-/* =========================================================
-   STOP
-   ========================================================= */
-
-function stopPlaylist() {
-
-    playlistPlaying = false;
-
-
-    if (currentMedia) {
-
-        try {
-
-            currentMedia.pause();
-
-        } catch (error) {
-
-            console.warn(error);
-
-        }
-
-    }
-
-
-    currentMedia = null;
-
-
-    playlistFrame.src =
-        "about:blank";
-
-
-    playPauseButton.textContent =
-        "▶";
-
-
-    nowPlayingTitle.textContent =
-        "Nothing playing";
-
-
-    nowPlayingState.textContent =
-        "Stopped";
-
-
-    updateStatus(
-        "Playlist stopped."
-    );
-
-
-    progressBar.value = 0;
-
-    currentTimeElement.textContent =
-        "0:00";
-
-    totalTimeElement.textContent =
-        "0:00";
-
-
-    renderQueue();
-
-}
-
-
-/* =========================================================
-   SEEK
-   ========================================================= */
-
-progressBar.addEventListener(
-    "input",
-    function () {
-
-        if (!currentMedia) {
-            return;
-        }
-
-
-        if (
-            Number.isFinite(
-                currentMedia.duration
-            )
-        ) {
-
-            currentMedia.currentTime =
-                (
-                    Number(this.value) / 100
-                ) *
-                currentMedia.duration;
-
-        }
-
-    }
-);
-
-
-/* =========================================================
-   PROGRESS UPDATE
-   ========================================================= */
-
-function updateProgress() {
-
-    if (!currentMedia) {
-        return;
-    }
-
-
-    if (
-        Number.isFinite(
-            currentMedia.duration
-        ) &&
-        currentMedia.duration > 0
-    ) {
-
-        progressBar.value =
-            (
-                currentMedia.currentTime /
-                currentMedia.duration
-            ) *
-            100;
-
-    }
-
-
-    currentTimeElement.textContent =
-        formatTime(
-            currentMedia.currentTime
-        );
-
-}
-
-
-/* =========================================================
-   DURATION
-   ========================================================= */
-
-function updateDuration() {
-
-    if (!currentMedia) {
-        return;
-    }
-
-
-    totalTimeElement.textContent =
-        formatTime(
-            currentMedia.duration
-        );
-
-}
-
-
-/* =========================================================
-   SKIP BACKWARD
-   ========================================================= */
-
-function skipBackward() {
-
-    if (!currentMedia) {
-        return;
-    }
-
-
-    currentMedia.currentTime =
-        Math.max(
-            0,
-            currentMedia.currentTime - 10
-        );
-
-}
-
-
-/* =========================================================
-   SKIP FORWARD
-   ========================================================= */
-
-function skipForward() {
-
-    if (!currentMedia) {
-        return;
-    }
-
-
-    currentMedia.currentTime =
-        Math.min(
-            currentMedia.duration || Infinity,
-            currentMedia.currentTime + 10
-        );
-
-}
-
-
-/* =========================================================
-   VOLUME
-   ========================================================= */
-
-volumeSlider.addEventListener(
-    "input",
-    function () {
-
-        const volume =
-            Number(this.value);
-
-
-        localStorage.setItem(
-            "musicVolume",
-            volume
-        );
-
-
-        if (currentMedia) {
-
-            currentMedia.volume =
-                volume;
-
-        }
-
-    }
-);
-
-
-/* =========================================================
-   MUTE
-   ========================================================= */
-
-function toggleMute() {
-
-    if (!currentMedia) {
-        return;
-    }
-
-
-    muted = !muted;
-
-
-    currentMedia.muted =
-        muted;
-
-}
-
-
-/* =========================================================
-   PLAYBACK SPEED
-   ========================================================= */
-
-speedSelect.addEventListener(
-    "change",
-    function () {
-
-        if (currentMedia) {
-
-            currentMedia.playbackRate =
-                Number(this.value);
-
-        }
-
-    }
-);
-
-
-/* =========================================================
-   START TIME
-   ========================================================= */
-
-function applyStartTime() {
-
-    if (!currentMedia) {
-        return;
-    }
-
-
-    const seconds =
-        Number(
-            document.getElementById(
-                "startTimeInput"
-            ).value
-        );
-
-
-    if (
-        !Number.isFinite(seconds) ||
-        seconds < 0
-    ) {
-
-        alert(
-            "Enter a valid start time."
-        );
-
-        return;
-
-    }
-
-
-    if (
-        currentMedia.duration &&
-        seconds >= currentMedia.duration
-    ) {
-
-        alert(
-            "That time is longer than the song."
-        );
-
-        return;
-
-    }
-
-
-    currentMedia.currentTime =
-        seconds;
-
-}
-
-
-/* =========================================================
-   SLEEP TIMER
-   ========================================================= */
-
-document
-    .getElementById("sleepTimerSelect")
-    .addEventListener(
-        "change",
-        function () {
-
-            const minutes =
-                Number(this.value);
-
-
-            if (sleepTimer) {
-
-                clearTimeout(
-                    sleepTimer
-                );
-
-                sleepTimer = null;
-
-            }
-
-
-            if (minutes === 0) {
-
-                sleepTimerEnd = null;
-
-                document.getElementById(
-                    "sleepTimerStatus"
-                ).textContent =
-                    "Sleep timer off";
-
-                return;
-
-            }
-
-
-            sleepTimerEnd =
-                Date.now() +
-                minutes * 60 * 1000;
-
-
-            document.getElementById(
-                "sleepTimerStatus"
-            ).textContent =
-                "Stops in " +
-                minutes +
-                " minute" +
-                (minutes === 1 ? "" : "s");
-
-
-            sleepTimer =
-                setTimeout(
-                    () => {
-
-                        stopPlaylist();
-
-                        document.getElementById(
-                            "sleepTimerStatus"
-                        ).textContent =
-                            "Sleep timer stopped playback.";
-
-                    },
-                    minutes * 60 * 1000
-                );
-
-        }
-    );
-
-
-/* =========================================================
-   MAIN SEARCH
-   ========================================================= */
-
-searchInput.addEventListener(
-    "input",
-    function () {
-
-        const query =
-            this.value
-                .trim()
-                .toLowerCase();
-
-
-        let visible = 0;
-
-
-        songLinks.forEach(song => {
-
-            const text =
-                song.innerText
-                    .toLowerCase();
-
-
-            const matches =
-                text.includes(query);
-
-
-            song.classList.toggle(
-                "hidden-by-search",
-                !matches
-            );
-
-
-            if (matches) {
-                visible++;
-            }
-
-        });
-
-
-        document.getElementById(
-            "searchResultsText"
-        ).textContent =
-            query
-                ? `${visible} song${visible === 1 ? "" : "s"} found`
-                : "Showing all songs";
-
-    }
-);
-
-
-/* =========================================================
-   QUEUE SEARCH
-   ========================================================= */
-
-queueSearch.addEventListener(
-    "input",
-    function () {
-
-        const query =
-            this.value
-                .trim()
-                .toLowerCase();
-
-
-        const items =
-            queueElement.querySelectorAll(
-                ".queue-item"
-            );
-
-
-        items.forEach(item => {
-
-            const text =
-                item.innerText
-                    .toLowerCase();
-
-
-            item.style.display =
-                text.includes(query)
-                    ? "flex"
-                    : "none";
-
-        });
-
-    }
-);
-
-
-/* =========================================================
-   STATUS
-   ========================================================= */
-
-function updateStatus(text) {
-
-    playlistStatus.textContent =
-        text;
-
-}
-
-
-/* =========================================================
-   KEYBOARD CONTROLS
-   ========================================================= */
-
-document.addEventListener(
-    "keydown",
-    function (event) {
-
-        const tag =
-            event.target.tagName.toLowerCase();
-
-
-        if (
-            tag === "input" ||
-            tag === "textarea" ||
-            tag === "select"
-        ) {
-
-            return;
-
-        }
-
-
-        /*
-            Space = play/pause
-        */
-
-        if (
-            event.code === "Space"
-        ) {
-
-            event.preventDefault();
-
-            togglePlayPause();
-
-        }
-
-
-        /*
-            Left arrow = -10 seconds
-        */
-
-        else if (
-            event.code === "ArrowLeft"
-        ) {
-
-            skipBackward();
-
-        }
-
-
-        /*
-            Right arrow = +10 seconds
-        */
-
-        else if (
-            event.code === "ArrowRight"
-        ) {
-
-            skipForward();
-
-        }
-
-
-        /*
-            N = next
-        */
-
-        else if (
-            event.key.toLowerCase() === "n"
-        ) {
-
-            nextSong();
-
-        }
-
-
-        /*
-            P = previous
-        */
-
-        else if (
-            event.key.toLowerCase() === "p"
-        ) {
-
-            previousSong();
-
-        }
-
-    }
-);
-
-
-/* =========================================================
-   COOKIE FUNCTIONS
-   ========================================================= */
-
-function getCookie(name) {
-
-    const value =
-        `; ${document.cookie}`;
-
-    const parts =
-        value.split(
-            `; ${name}=`
-        );
-
-
-    if (parts.length === 2) {
-
-        return parts
-            .pop()
-            .split(";")
-            .shift();
-
-    }
-
-
-    return null;
-
-}
-
-
-function setCookie(
-    name,
-    value,
-    days
-) {
-
-    const maxAge =
-        days *
-        24 *
-        60 *
-        60;
-
-
-    document.cookie =
-        `${name}=${encodeURIComponent(value)}; ` +
-        `path=/; max-age=${maxAge}; SameSite=Lax`;
-
-}
-
-
-/* =========================================================
-   PASSWORD
-   ========================================================= */
-
-const UNLOCK_PASSWORD =
-    "Un_L0cked123!";
-
-
-function unlockPassword() {
-
-    const input =
-        document.getElementById(
-            "unlockInput"
-        ).value;
-
-
-    if (
-        input === UNLOCK_PASSWORD
-    ) {
-
-        setCookie(
-            "quizPassed",
-            "true",
-            7
-        );
-
-
-        alert(
-            "Unlocked successfully!"
-        );
-
-    } else {
-
-        alert(
-            "Incorrect password."
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   TEACHER OVERRIDE
-   ========================================================= */
-
-const OVERRIDE_CODE =
-    "F0ll0W_Th3_Rules!";
-
-
-function teacherOverridePrompt() {
-
-    const input =
-        prompt(
-            "Quiz Override Code: Please enter the override code to bypass the quiz!"
-        );
-
-
-    if (!input) {
-        return;
-    }
-
-
-    if (
-        input === OVERRIDE_CODE
-    ) {
-
-        setCookie(
-            "quizOverride",
-            "true",
-            7
-        );
-
-
-        alert(
-            "Override enabled on this device."
-        );
-
-    } else {
-
-        alert(
-            "Incorrect override code."
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   EXPLICIT WARNING
-   ========================================================= */
-
-function explicitWarning() {
-
-    return true;
-
-}
-
-
-/* =========================================================
-   INITIALIZE
-   ========================================================= */
-
-selectAllSongs();
-
-queue = [];
-
-/*
-    Don't automatically fill the playlist.
-    The library remains available underneath,
-    while the queue starts empty.
-*/
-
-currentIndex = -1;
-
+buildLibrary();
 renderQueue();
-
-
-/*
-    Restore volume.
-*/
-
-volumeSlider.value =
-    lastVolume;
-
-
-/* =========================================================
-   PREVENT ACCIDENTAL FORM SUBMISSION
-   ========================================================= */
-
-document.addEventListener(
-    "click",
-    function (event) {
-
-        const button =
-            event.target.closest(
-                "button"
-            );
-
-
-        if (button) {
-            event.preventDefault();
-        }
-
-    }
-);
-
 </script>
-
-
 </body>
 </html>
