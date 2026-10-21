@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="style.css">
+    <title>Music Player Online</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+</head>
+
+<script>
+alert("Do not use this to blast up in public places like schools, etc. I am not responsible for any trouble if you blast up any music and get in trouble. Use this at your own risk. I am not responsible for any damage to your ears or any other damage that may occur from using this website.");
+</script>
+<script>
+// BLOCK direct URL / new tab access to music pages
+(function() {
+    const current = window.location.pathname;
+
+    // If user opens ANY /Music/Music/*.html directly → redirect to index
+    if (current.startsWith("/Music/Music/")) {
+        window.location.href = "/Music/index.html";
+    }
+})();
+</script>
+
+<body>
+<link rel="stylesheet" href="style.css">
+
+<h1 class="CenterColor">Music Player Online</h1>
+<h2 class="CenterColor">Used some code from GitHub in order to assist along with AI. Also if you're going to let your children listen to music IT IS NOT FOR children/kids!!!!!</h2>
+<h3 class="CenterColor">Also all of the warnings in the music apply to download rules too!!!!</h3>
+<h3 class="CenterColor"> Do not blast up music in any places including public like schools etc, it applies to all music! </h3>
+<a><h3 class="CenterColor" href="/"> Click here for homepage </h3></a>
+
+<!-- ⭐ NEW PASSWORD UNLOCK BAR ⭐ -->
+<div class="CenterColor" style="margin-top:20px;">
+    <input id="unlockInput" type="password" placeholder="Enter the override quiz code here" 
+           style="padding:10px; width:250px; font-size:16px;">
+    <button onclick="unlockPassword()" style="padding:10px; font-size:16px;">Unlock</button>
+</div>
+<h3> By typing the code, <a href="Music/SecretCode/index.html">Your agreeing to the rules</a></h3>
+<p class="CenterColor" style="font-size: 12px; cursor: pointer; text-decoration: underline;" onclick="teacherOverridePrompt()">Quiz Override Code</p>
+
+<div id="searchContainer">
+<input type="text" id="searchInput" onkeyup="searchButtons()" placeholder="Search for music" style="background-color:#1ED760;color:purple;">
+
+</div>
+
+<div class="button-container">
+    <a class="button" href="Music/67PhonkSpyrix.html" onclick="return explicitWarning()"><div class="img-box"><img src="Music/Images/67PhonkSpyrix.png" alt=""></div>Phonk | 67 Phonk - Spyrix</a>
+    <a class="button" href="Music/FireSongSlavaMarshmallow.html" onclick="return explicitWarning()"><div class="img-box"><img src="Music/Images/SlavaFireSong.png" alt=""></div>(Russian) Pop | SLAVA MARLOW - Ты Горишь Как Огонь</a>
+    <a class="button" href="Music/ThreeStripesSong.html" onclick="return explicitWarning()"><div class="img-box"><img src="Music/Images/threestripes.png" alt=""></div>(Russian) Pop | ТРИ ПОЛОСКИ / KOLM TRIIPU / THREE STRIPES</a>
+    <a class="button" href="Music/NitroLXN.html" onclick="return explicitWarning()"><div class="img-box"><img src="Music/Images/Nitro.png" alt=""></div>Phonk | NITRO - LXNGVX</a>
+    <a class="button" href="Music/BigDawgs.html" onclick="return explicitWarning()"><div class="img-box"><img src="Music/Images/bigdawgs.png" alt=""></div>(Indian) Hip-Hop | Big Dawgs - Hanumankind</a>
+    <a class="button" href="Music/IssamAlnajjar.html" onclick="return explicitWarning()"><div class="img-box"><img src="Music/Images/Issam Alnajjar.png" alt=""></div>(Arabic) Hip-Hop | Issam Alnajjar - Hadal Ahbek</a>
+    <a class="button" href="Music/tvoff.html" onclick="return explicitWarning()"><div class="img-box"><img src="Music/Images/tvoff.png" alt=""></div>Conscious Hip-Hop | Tv Off - Kendrick Lamar</a>
+    <a class="button" href="Music/traproyaltyextended.html" onclick="return explicitWarning()"><div class="img-box"><img src="Music/Images/traproyaltyextended.png" alt=""></div>Cinematic Trap | Trap Royalty Extended</a>
+    <a class="button" href="Music/odnogoultrafunk.html" onclick="return explicitWarning()"><div class="img-box"><img src="Music/Images/odnogoultrafunk.png" alt=""></div>(Russian) UltraPhonk | Odnogo Phonk - VaporVice</a>
+    <a class="button" href="Music/mashaultrafunk.html" onclick="return explicitWarning()"><div class="img-box"><img src="Music/Images/mashaultrafunk.png" alt=""></div>(Russian) UltraPhonk | Masha Phonk - Histed</a>
+    <a class="button" href="Music/skibidilittlebig.html" onclick="return explicitWarning()"><div class="img-box"><img src="Music/Images/littlebigskibidi.png" alt=""></div>(Russian) Dance-Pop | Skibidi - Little Big</a>
+    <a class="button" href="Music/banndabanda.html" onclick="return explicitWarning()"><div class="img-box"><img src="Music/Images/banndabanda.png" alt=""></div>(Polish) Aggressive Rap | Bannda - Banda</a>
+    <a class="button" href="Music/Banndabandaspedup.html" onclick="return explicitWarning()"><div class="img-box"><img src="Music/Images/banndabanda.png" alt=""></div>(Polish) Aggressive Rap | Bannda - Banda (Sped Up)</a>
+    <a class="button" href="Music/withoutyoukevin.html" onclick="return explicitWarning()"><div class="img-box"><img src="Music/Images/withoutyoukevin.png" alt=""></div>Friendly Pop | Without you - K3vin_g</a>
+    <a class="button" href="Music/goodmorningbabbyjayy.html" onclick="return explicitWarning()"><div class="img-box"><img src="Music/Images/GoodMorningBabyJayy.png" alt=""></div>Passive Aggressive Trap  / Pop-Rap | Good Morning - Baby Jayy</a>
+    <a class="button" href="Music/Bazookasong.html" onclick="return explicitWarning()"><div class="img-box"><img src="Music/Images/Bazookasong.png" alt=""></div> Meme Song Remix | Bazooka - Miami XO</a>
+    <a class="button" href="Music/Hypnodancer.html" onclick="return explicitWarning()"><div class="img-box"><img src="Music/Images/HypnoDancer.png" alt=""></div> Meme song | Hypno Dancer - Little Big</a>
+    <a class="button" href="Music/Faradenza.html" onclick="return explicitWarning()"><div class="img-box"><img src="Music/Images/Littlebigfaradenza.png" alt=""></div> Viral Hit | Faradenza - Little Big</a>
+    <a class="button" href="Music/Grannyshouse.html" onclick="return explicitWarning()"><div class="img-box"><img src="Music/Images/GrannysHouse.png" alt=""></div> Viral Hit | Granny's House - FGTeeV</a>
+    <a class="button" href="Music/Fishyonme.html" onclick="return explicitWarning()"><div class="img-box"><img src="Music/Images/Fishyonme.png" alt=""></div> Fornite Viral Hit | Fishy On Me - Tiko</a>
+
+</div>
+
+<p class="CenterColor">Click any song to unlock access.</p>
+
+<script>
+function searchButtons() {
+    const input = document.getElementById("searchInput").value.toLowerCase();
+    const buttons = document.querySelectorAll(".button");
+    buttons.forEach(btn => {
+        const text = btn.innerText.toLowerCase();
+        btn.style.display = text.includes(input) ? "flex" : "none";
+    });
+}
+
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(";").shift();
+    return null;
+}
+
+function setCookie(name, value, days) {
+    const maxAge = days * 24 * 60 * 60;
+    document.cookie = `${name}=${value}; path=/; max-age=${maxAge}`;
+}
+
+// ⭐ NEW TOP-OF-PAGE PASSWORD UNLOCK ⭐
+const UNLOCK_PASSWORD = "Un_L0cked123!";
+
+function unlockPassword() {
+    const input = document.getElementById("unlockInput").value;
+    if (input === UNLOCK_PASSWORD) {
+        setCookie("quizPassed", "true", 7);
+        alert("Unlocked successfully!");
+    } else {
+        alert("Incorrect password.");
+    }
+}
+
+// Called when clicking any song
+
+
+// Teacher override code
+const OVERRIDE_CODE = "F0ll0W_Th3_Rules!";
+
+function teacherOverridePrompt() {
+    const input = prompt("Quiz Override Code: Please enter the override code to bypass the quiz!");
+    if (!input) return;
+    if (input === OVERRIDE_CODE) {
+        setCookie("quizOverride", "true", 7);
+        alert("Override enabled on this device.");
+    } else {
+        alert("Incorrect override code.");
+    }
+}
+</script>
+
+</body>
+</html>
+
+
+
+
+
+
+
